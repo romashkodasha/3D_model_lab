@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>My 3D model</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.min.js"
+        integrity="sha512-n8IpKWzDnBOcBhRlHirMZOUvEq2bLRMuJGjuVqbzUJwtTsgwOgK5aS0c1JA647XWYfqvXve8k3PtZdzpipFjgg=="
+        crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        const canvas = document.querySelector('#canvas');
+        const renderer = new THREE.WebGLRenderer({ canvas });
+        //Задаем параметры для создания камеры
+
+        const fov = 75;//поле зрения
+        const aspect = 2;  // the canvas default соотношение сторон
+        const near = 0.1; //ближняя плоскость отсечения
+        const far = 5; //дальняя плоскость отсечения
+        const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+        camera.position.z = 2;
+
+        const scene = new THREE.Scene(); //создаем сцену
+
+        const loader = new THREE.GLTFLoader(); //загрузчик для модели
+        const url = 'lab7.glb';
+        let model;
+         //загружаем модель и добавляем  ее на сцену
+        loader.load(url, (gltf) => {
+            model = gltf.scene;
+            scene.add(model);
+            model.position.y = 0;
+            model.rotation.x = 0;
+        });
+         //добавляем на сцену источник света
+        const light = new THREE.HemisphereLight(0xffffff, 0xbbbbff, 2);
+        light.position.set(0, 1, 0);
+        scene.add(light);
+        //добавление координатной сетки на сцену если надо, то раскомментировать
+        // const helper = new THREE.GridHelper(3, 3);
+        // scene.add(helper);
+        
+        //параметры для отображения на экране
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.position.z = 2;
+
+        //функция для отрисовки кадров анимации
+
+        function render() {
+            // if (model) model.rotation.z += 0.01;
+            renderer.render(scene, camera);
+            requestAnimationFrame(render);
+        }
+        requestAnimationFrame(render);
+
+        //функция для изменения разрешения рендерера при изменении размеров окна
+
+        function resizeRendererToDisplaySize(renderer) {
+            const canvas = renderer.domElement;
+            const width = window.innerWidth;
+            const height = window.innerHeight;
+            const needResize = canvas.width !== width || canvas.height !== height;
+            if (needResize) {
+                renderer.setSize(width, height, false);
+            }
+            return needResize;
+        }
+        //обработка нажатия мыши на холсте
+        let dragging = false;
+        let lastX;
+
+        canvas.addEventListener('mousedown', event => {
+            // Запоминаем начальное положение курсора при нажатии на кнопку мыши
+            dragging = true;
+            lastX = event.clientX;
+        });
+
+        canvas.addEventListener('mousemove', event => {
+            // При перемещении мышки вращаем модель, если зажата левая кнопка мыши
+            if (dragging) {
+                const deltaX = event.clientX - lastX;
+                model.rotation.y += deltaX * 0.01;
+                lastX = event.clientX;
+            }
+        });
+
+        canvas.addEventListener('mouseup', event => {
+            // Обнуляем значение dragging при отжатии левой кнопки мыши
+            dragging = false;
+        });
+    </script>
+</body>
+
+</html>
